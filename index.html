@@ -32,18 +32,18 @@
     }
 
     .app {
-      width: 100%;
-      max-width: 1200px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      font-size: 18px;
-    }
+	  width: 100%;
+	  max-width: 1200px;
+	  padding: 16px;
+	  display: flex;
+	  flex-direction: column;    /* mobile: column, panel first */
+	  gap: 16px;
+	  font-size: 18px;
+	}
 
     @media (min-width: 900px) {
       .app {
-        flex-direction: row;
+        flex-direction: row-reverse; /* panel on the left, wheel on the right on desktop */
         align-items: stretch;
         gap: 24px;
       }
@@ -51,16 +51,25 @@
 
     /* LEFT: Controls */
     .panel {
-      background: var(--panel);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-width: 380px;
-      border: 1px solid var(--border);
-      box-shadow: 0 12px 30px rgba(148, 163, 184, 0.45);
-    }
+	  background: var(--panel);
+	  border-radius: 16px;
+	  padding: 16px;
+	  display: flex;
+	  flex-direction: column;
+	  gap: 12px;
+	  width: 100%;           /* full width on mobile */
+	  max-width: none;
+	  border: 1px solid var(--border);
+	  box-shadow: 0 12px 30px rgba(148, 163, 184, 0.45);
+	}
+
+	/* Desktop: limit panel width */
+	@media (min-width: 900px) {
+	  .panel {
+		max-width: 380px;
+		flex-shrink: 0;
+	  }
+	}
 
     .panel-header {
       display: flex;
@@ -254,24 +263,42 @@
 
     /* RIGHT: Wheel Area */
     .wheel-area {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-      position: relative;
-      min-height: 360px;
-    }
+	  flex: 1;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  padding: 8px;
+	  position: relative;
+	  min-height: 360px;
+	  width: 100%;       /* ensure it fills under the panel on mobile */
+	}
 
     .wheel-wrapper {
-      position: relative;
-      width: min(80vh, 80vw);
-      max-width: 640px;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+	  position: relative;
+	  width: 100%;
+	  max-width: 480px;
+	  aspect-ratio: 1 / 1;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  margin: 0 auto;
+	}
+	/* Make wheel a bit smaller and give breathing room on very small phones */
+	@media (max-width: 600px) {
+	  .wheel-area {
+		min-height: 320px;
+		padding: 0;
+	  }
+	  .wheel-wrapper {
+		max-width: 360px;
+	  }
+	  .question-display {
+		top: -8%;
+		max-width: 90%;
+		font-size: 18px;
+	  }
+	}
+	
 
     .wheel-bg-ring {
       position: absolute;
