@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple Wheel Game</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --panel: #ffffff;
+      --accent: #ff9800;
+      --text: #111827;
+      --muted: #6b7280;
+      --danger: #ef4444;
+      --ok: #16a34a;
+      --border: #d1d5db;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #e5e7eb 0, #f3f4f6 40%, #e5e7eb 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1200px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      font-size: 18px;
+    }
+
+    @media (min-width: 900px) {
+      .app {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 24px;
+      }
+    }
+
+    /* LEFT: Controls */
+    .panel {
+      background: var(--panel);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 380px;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 30px rgba(148, 163, 184, 0.45);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .badge {
+      font-size: 16px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    /* Question input */
+    .question-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .question-label {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    #questionInput {
+      background: #f9fafb;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 18px;
+      outline: none;
+    }
+    #questionInput:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35);
+      background: #ffffff;
+    }
+
+    /* Entries: no scrollbar, enough height for ~10 rows */
+    .inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: none;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .input-row input {
+      flex: 1;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      color: var(--text);
+      font-size: 18px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .input-row input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35);
+      background: #ffffff;
+    }
+
+    .input-row button {
+      border-radius: 999px;
+      border: none;
+      background: #e5e7eb;
+      color: var(--muted);
+      width: 26px;
+      height: 26px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+
+    .input-row button:hover {
+      background: #d1d5db;
+      color: var(--text);
+    }
+
+    .input-row button:active {
+      transform: scale(0.92);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 10px 14px;
+      font-size: 16px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      flex: 1;
+      min-width: 110px;
+      background: var(--accent);
+      color: #111827;
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.45);
+    }
+
+    .btn-primary:hover {
+      background: #ffb74d;
+      box-shadow: 0 10px 26px rgba(245, 158, 11, 0.55);
+    }
+
+    .btn-secondary {
+      padding: 4px 10px;
+      font-size: 14px;
+      background: #e5e7eb;
+      color: var(--muted);
+      border-radius: 999px;
+      min-width: auto;
+      flex: 0 0 auto;
+      align-self: flex-start;
+    }
+
+    .btn-secondary:hover {
+      background: #d1d5db;
+      color: var(--text);
+    }
+
+    #addFieldBtn {
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: none;
+    }
+
+    .btn[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .hint {
+      font-size: 16px;
+      color: var(--muted);
+    }
+
+    .status {
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+    }
+
+    .status span strong {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    /* RIGHT: Wheel Area */
+    .wheel-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      position: relative;
+      min-height: 360px;
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: min(80vh, 80vw);
+      max-width: 640px;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wheel-bg-ring {
+      position: absolute;
+      inset: 4%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0, #e5e7eb 60%, #d1d5db 100%);
+      box-shadow:
+        0 0 0 3px rgba(209, 213, 219, 0.9),
+        0 16px 35px rgba(148, 163, 184, 0.65);
+    }
+
+    .wheel {
+      position: absolute;
+      inset: 10%;
+      border-radius: 50%;
+      background: conic-gradient(#e5e7eb 0deg, #f9fafb 360deg);
+      box-shadow:
+        inset 0 0 0 2px rgba(148, 163, 184, 0.7),
+        0 0 25px rgba(148, 163, 184, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wheel.segments-0::before {
+      content: "";
+    }
+
+    .wheel-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+
+    .wheel-center {
+      position: absolute;
+      width: 12%;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, #e5e7eb 0, #cbd5f5 70%);
+      box-shadow:
+        0 0 0 3px #ffffff,
+        0 0 12px rgba(148, 163, 184, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    #centerLabel {
+      display: none;
+    }
+
+    /* Needle in middle of pie */
+    .needle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 16px 90px 16px;
+      border-color: transparent transparent var(--danger) transparent;
+      transform-origin: 50% 70px;
+      transform: translate(-50%, -50%) rotate(0deg);
+      filter: drop-shadow(0 8px 10px rgba(148, 163, 184, 0.9));
+      transition: transform 0.2s ease-out;
+    }
+
+    .needle-base {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #f9fafb 0, #d1d5db 70%);
+      border: 2px solid #9ca3af;
+      box-shadow: 0 8px 14px rgba(148, 163, 184, 0.9);
+    }
+
+    .needle.spinning {
+      transition-timing-function: cubic-bezier(0.12, 0.01, 0.12, 1);
+    }
+
+    /* Question display on top of pie */
+    .question-display {
+      position: absolute;
+      top: -12%;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 80%;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    /* Winner overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .overlay-box {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 24px 24px 20px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 18px 40px rgba(148, 163, 184, 0.8);
+      border: 1px solid #e5e7eb;
+      font-size: 18px;
+    }
+
+    .overlay-question {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .overlay-title {
+      font-size: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-bottom: 12px;
+      color: var(--accent);
+    }
+
+    .overlay-winner {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      word-break: break-word;
+      color: var(--text);
+    }
+
+    .overlay-sub {
+      display: none;
+    }
+
+    .overlay button {
+      margin-top: 4px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- LEFT: Controls -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Entries</div>
+        <div class="badge" id="entryCountBadge">0 / 10</div>
+      </div>
+
+      <!-- Question input -->
+      <div class="question-block">
+        <label class="question-label" for="questionInput">Question / Topic</label>
+        <input
+          id="questionInput"
+          type="text"
+          placeholder="Type your question or topic here..."
+        />
+      </div>
+
+      <div class="inputs" id="inputsContainer"></div>
+
+      <button class="btn btn-secondary" id="addFieldBtn" type="button">
+        + Add field
+      </button>
+
+      <div class="buttons">
+        <button class="btn btn-secondary" id="clearBtn" type="button">
+          Clear
+        </button>
+        <button class="btn btn-primary" id="startBtn" type="button">
+          Spin
+        </button>
+      </div>
+
+      <div class="status">
+        <span id="statusText">Waiting for entries</span>
+        <span><strong id="spinStatus">Ready</strong></span>
+      </div>
+
+      <div class="hint">
+        Up to 10 fields. Type a question, add choices, then press Spin.
+      </div>
+    </div>
+
+    <!-- RIGHT: Wheel -->
+    <div class="wheel-area">
+      <div class="wheel-wrapper">
+        <div class="question-display" id="questionDisplay"></div>
+
+        <div class="wheel-bg-ring"></div>
+
+        <div class="wheel segments-0" id="wheel">
+          <canvas id="wheelCanvas" class="wheel-canvas"></canvas>
+        </div>
+
+        <div class="wheel-center">
+          <span id="centerLabel"></span>
+        </div>
+
+        <div class="needle-base"></div>
+        <div class="needle" id="needle"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Winner Overlay -->
+  <div class="overlay" id="winnerOverlay">
+    <div class="overlay-box">
+      <div class="overlay-question" id="overlayQuestion"></div>
+      <div class="overlay-title">Winner</div>
+      <div class="overlay-winner" id="winnerName">Name</div>
+      <div class="overlay-sub" id="winnerDetail"></div>
+      <button class="btn btn-primary" type="button" id="closeOverlayBtn">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const MAX_FIELDS = 10;
+
+      const inputsContainer = document.getElementById('inputsContainer');
+      const addFieldBtn = document.getElementById('addFieldBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const startBtn = document.getElementById('startBtn');
+      const entryCountBadge = document.getElementById('entryCountBadge');
+      const statusText = document.getElementById('statusText');
+      const spinStatus = document.getElementById('spinStatus');
+
+      const wheel = document.getElementById('wheel');
+      const canvas = document.getElementById('wheelCanvas');
+      const ctx = canvas.getContext('2d');
+      const needle = document.getElementById('needle');
+
+      const questionInput = document.getElementById('questionInput');
+      const questionDisplay = document.getElementById('questionDisplay');
+
+      const overlay = document.getElementById('winnerOverlay');
+      const overlayQuestionEl = document.getElementById('overlayQuestion');
+      const winnerNameEl = document.getElementById('winnerName');
+      const closeOverlayBtn = document.getElementById('closeOverlayBtn');
+
+      let isSpinning = false;
+      let entries = [];
+      let currentRotation = 0; // in degrees, growing clockwise only
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const size = Math.min(rect.width, rect.height);
+        canvas.width = size * window.devicePixelRatio;
+        canvas.height = size * window.devicePixelRatio;
+        ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        drawWheel();
+      }
+
+      window.addEventListener('resize', resizeCanvas);
+
+      function updateEntryCount() {
+        const textInputs = Array.from(inputsContainer.querySelectorAll('input'));
+        entries = textInputs
+          .map(input => input.value.trim())
+          .filter(v => v.length > 0);
+        entryCountBadge.textContent = `${entries.length} / ${MAX_FIELDS}`;
+        statusText.textContent = entries.length === 0
+          ? 'Waiting for entries'
+          : `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'} ready`;
+        spinStatus.textContent = isSpinning
+          ? 'Spinning'
+          : (entries.length > 0 ? 'Ready' : 'Add names');
+
+        wheel.className = `wheel segments-${entries.length}`;
+        drawWheel();
+      }
+
+      function addField(value = '') {
+        const currentCount = inputsContainer.querySelectorAll('.input-row').length;
+        if (currentCount >= MAX_FIELDS) return;
+
+        const row = document.createElement('div');
+        row.className = 'input-row';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = `Entry ${currentCount + 1}`;
+        input.value = value;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.textContent = '×';
+        removeBtn.title = 'Remove';
+
+        removeBtn.addEventListener('click', () => {
+          if (isSpinning) return;
+          row.remove();
+          renumberPlaceholders();
+          toggleAddButtonState();
+          updateEntryCount();
+        });
+
+        input.addEventListener('input', () => {
+          updateEntryCount();
+        });
+
+        row.appendChild(input);
+        row.appendChild(removeBtn);
+        inputsContainer.appendChild(row);
+
+        toggleAddButtonState();
+        updateEntryCount();
+      }
+
+      function renumberPlaceholders() {
+        Array.from(inputsContainer.querySelectorAll('input')).forEach((input, i) => {
+          input.placeholder = `Entry ${i + 1}`;
+        });
+      }
+
+      function toggleAddButtonState() {
+        const count = inputsContainer.querySelectorAll('.input-row').length;
+        addFieldBtn.disabled = count >= MAX_FIELDS;
+      }
+
+      function clearAll() {
+        if (isSpinning) return;
+        inputsContainer.innerHTML = '';
+        questionInput.value = '';
+        questionDisplay.textContent = '';
+        addField();
+        toggleAddButtonState();
+        updateEntryCount();
+      }
+
+      function drawWheel() {
+        const n = entries.length;
+        const w = canvas.width / window.devicePixelRatio;
+        const h = canvas.height / window.devicePixelRatio;
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) / 2;
+
+        ctx.clearRect(0, 0, w, h);
+
+        if (n === 0) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius * 0.9, 0, 2 * Math.PI);
+          const grad = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, radius * 0.9);
+          grad.addColorStop(0, '#f3f4f6');
+          grad.addColorStop(1, '#e5e7eb');
+          ctx.fillStyle = grad;
+          ctx.fill();
+          return;
+        }
+
+        const colors = [
+          '#f97373', '#facc15', '#38bdf8', '#a855f7', '#4ade80',
+          '#fb923c', '#ef4444', '#22c55e', '#e879f9', '#fde047'
+        ];
+
+        const anglePer = (2 * Math.PI) / n;
+
+        for (let i = 0; i < n; i++) {
+          const startAngle = i * anglePer - Math.PI / 2;
+          const endAngle = startAngle + anglePer;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, radius * 0.9, startAngle, endAngle);
+          ctx.closePath();
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.fill();
+
+          const midAngle = (startAngle + endAngle) / 2;
+          const textRadius = radius * 0.58;
+          const tx = cx + Math.cos(midAngle) * textRadius;
+          const ty = cy + Math.sin(midAngle) * textRadius;
+
+          ctx.save();
+          ctx.translate(tx, ty);
+          ctx.rotate(midAngle + Math.PI / 2);
+          ctx.fillStyle = '#111827';
+          ctx.font = 'bold 22px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          const label = entries[i];
+          const maxWidth = radius * 0.8;
+          const truncated = truncateText(ctx, label, maxWidth);
+          ctx.fillText(truncated, 0, 0);
+          ctx.restore();
+        }
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 0.18, 0, 2 * Math.PI);
+        ctx.fillStyle = '#e5e7eb';
+        ctx.fill();
+      }
+
+      function truncateText(ctx, text, maxWidth) {
+        if (!text) return '';
+        if (ctx.measureText(text).width <= maxWidth) return text;
+
+        let truncated = text;
+        while (truncated.length > 0 && ctx.measureText(truncated + '…').width > maxWidth) {
+          truncated = truncated.slice(0, -1);
+        }
+        return truncated + '…';
+      }
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function spin() {
+        if (isSpinning) return;
+
+        updateEntryCount();
+        const n = entries.length;
+        if (n === 0) {
+          statusText.textContent = 'Add at least 1 entry';
+          return;
+        }
+
+        questionDisplay.textContent = questionInput.value.trim();
+
+        isSpinning = true;
+        startBtn.disabled = true;
+        clearBtn.disabled = true;
+        addFieldBtn.disabled = true;
+        questionInput.disabled = true;
+        Array.from(inputsContainer.querySelectorAll('input, button')).forEach(el => {
+          el.disabled = true;
+        });
+
+        statusText.textContent = 'Spinning…';
+        spinStatus.textContent = 'Spinning';
+
+        // Fresh speed each time
+        const duration = randomInt(3000, 10000);
+        const minSpins = 4;
+        const extraSpins = Math.random() * 4;
+
+        const nSegments = n;
+        const anglePerSegment = 360 / nSegments;
+
+        const winningIndex = randomInt(0, nSegments - 1);
+        const segmentCenterAngleFromUp = winningIndex * anglePerSegment + anglePerSegment / 2;
+
+        // FORCE CLOCKWISE:
+        // currentRotation is always growing; we just add a positive delta.
+        const totalRotation = (minSpins + extraSpins) * 360 + segmentCenterAngleFromUp;
+
+        needle.classList.add('spinning');
+        void needle.offsetWidth;
+
+        const targetRotation = currentRotation + totalRotation; // always > currentRotation
+
+        needle.style.transitionDuration = duration + 'ms';
+        needle.style.transform = `translate(-50%, -50%) rotate(${targetRotation}deg)`;
+
+        const onTransitionEnd = () => {
+          needle.removeEventListener('transitionend', onTransitionEnd);
+          needle.classList.remove('spinning');
+
+          // Keep currentRotation increasing; no modulo here to avoid “wrap‑back”
+          currentRotation = targetRotation;
+
+          const finalAngle = ((currentRotation % 360) + 360) % 360;
+          const index = Math.floor(finalAngle / anglePerSegment) % nSegments;
+          const winner = entries[index];
+
+          isSpinning = false;
+          startBtn.disabled = false;
+          clearBtn.disabled = false;
+          toggleAddButtonState();
+          questionInput.disabled = false;
+          Array.from(inputsContainer.querySelectorAll('input, button')).forEach(el => {
+            el.disabled = false;
+          });
+
+          statusText.textContent = 'Result ready';
+          spinStatus.textContent = 'Ready';
+
+          showWinnerOverlay(winner);
+        };
+
+        needle.addEventListener('transitionend', onTransitionEnd, { once: true });
+      }
+
+      function showWinnerOverlay(name) {
+        const question = questionInput.value.trim();
+        overlayQuestionEl.textContent = question || '';
+        winnerNameEl.textContent = name || '(empty)';
+        overlay.classList.add('active');
+      }
+
+      function closeOverlay() {
+        overlay.classList.remove('active');
+      }
+
+      // Event bindings
+      addFieldBtn.addEventListener('click', () => addField());
+      clearBtn.addEventListener('click', clearAll);
+      startBtn.addEventListener('click', spin);
+      closeOverlayBtn.addEventListener('click', closeOverlay);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeOverlay();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !isSpinning) {
+          const active = document.activeElement;
+          if (active && active.tagName === 'INPUT') {
+            spin();
+          }
+        }
+      });
+
+      questionInput.addEventListener('input', () => {
+        questionDisplay.textContent = questionInput.value.trim();
+      });
+
+      // Initialize
+      addField();
+      addField();
+      resizeCanvas();
+    })();
+  </script>
+</body>
+</html>
