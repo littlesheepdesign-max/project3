@@ -218,81 +218,67 @@ function spin() {
   const duration = randomInt(3000, 10000);
   const minSpins = 4;
   const extraSpins = Math.random() * 4;
-  const baseSpins = (minSpins + extraSpins) * 360;  // big multiple of 360
 
   const nSegments = n;
   const anglePerSegment = 360 / nSegments;
 
-  // Random offset within [0, 360)
+  // 1. Choose a random extra rotation within one full circle
   const randomOffset = Math.random() * 360;
 
-  // Final absolute angle we will animate to:
-  const targetAbsoluteAngle = baseSpins + randomOffset;
+  // 2. Base spins to look nice + random offset
+  const baseSpins = (minSpins + extraSpins) * 360;
+  const finalNeedleAngle = baseSpins + randomOffset; // in degrees
 
-  // Store this so we can use it in onTransitionEnd
-  const finalAngleDeg = targetAbsoluteAngle;
-
+  // 3. Animate needle from 0 to finalNeedleAngle (no drift)
   needle.classList.add('spinning');
   void needle.offsetWidth;
 
-  // Reset to 0deg before spinning (no drift)
+  // reset to 0deg so every spin starts from the same reference
   needle.style.transition = 'none';
   needle.style.transform = 'translate(-50%, -50%) rotate(0deg)';
   void needle.offsetWidth;
 
   needle.style.transition =
     `transform ${duration}ms cubic-bezier(0.12, 0.01, 0.12, 1)`;
-
   needle.style.transform =
-    `translate(-50%, -50%) rotate(${targetAbsoluteAngle}deg)`;
+    `translate(-50%, -50%) rotate(${finalNeedleAngle}deg)`;
 
   const onTransitionEnd = () => {
     needle.removeEventListener('transitionend', onTransitionEnd);
     needle.classList.remove('spinning');
 
-    // --- Determine winner from finalAngleDeg ---
+    // ---- Determine winner from finalNeedleAngle ----
 
-    // 1) Normalize to [0, 360)
-    let normalizedAngle = ((finalAngleDeg % 360) + 360) % 360; // always 0..359.999
+    // a) Normalize final needle angle to [0, 360)
+    let needleDeg = ((finalNeedleAngle % 360) + 360) % 360;
 
-    // 2) Where is the bottom needle tip in "wheel coordinates"?
-
-    // Needle 0deg = down (6 o'clock).
-    // Canvas slices are defined with 0deg = up (12 o'clock), clockwise positive.
+    // b) Convert to "wheel angle" where 0deg = up, clockwise positive:
     //
-    // When needle = 0deg → tip is at 180deg from "up".
-    // When needle = normalizedAngle → tip is at:
-    //   wheelAngleDeg = normalizedAngle + 180
-    let wheelAngleDeg = normalizedAngle + 180;
-
-    // Normalize again to [0, 360)
-    wheelAngleDeg = ((wheelAngleDeg % 360) + 360) % 360;
-
-    // 3) In your drawWheel, segment i starts at:
-    //    startAngleDeg = i * anglePerSegment - 90
-    //    and ends at startAngleDeg + anglePerSegment.
+    //    Needle 0deg = arrow tip DOWN (6 o'clock) → that is 180° from UP.
+    //    When needle rotates by needleDeg, the tip angle from UP is:
+    //        wheelDeg = needleDeg + 180
     //
-    // We want to find i such that wheelAngleDeg lies in that range.
-    // Rearranging:
+    let wheelDeg = needleDeg + 180;
+    wheelDeg = ((wheelDeg % 360) + 360) % 360; // normalize again
+
+    // c) Your drawWheel uses:
+    //    startAngleDeg(i) = i * anglePerSegment - 90
     //
-    //   startAngleDeg <= wheelAngleDeg < startAngleDeg + anglePerSegment
-    //   i * anglePerSegment - 90 <= wheelAngleDeg < i * anglePerSegment - 90 + anglePerSegment
+    //    We want segment i such that:
+    //      startAngleDeg(i) <= wheelDeg < startAngleDeg(i) + anglePerSegment
     //
-    //   (i - 0.5) * anglePerSegment <= wheelAngleDeg + 90 < (i + 0.5) * anglePerSegment
+    //    Rearranging is equivalent to:
+    //      i = floor( (wheelDeg + 90) / anglePerSegment )
     //
-    // So:
-    const adjusted = wheelAngleDeg + 90; // shift so that segment 0 center is at anglePerSegment/2
+    const adjusted = wheelDeg + 90;
+    let index = Math.floor(adjusted / anglePerSegment) % nSegments;
 
-    // segment index:
-    let winningIndex = Math.floor(adjusted / anglePerSegment) % nSegments;
+    if (index < 0) index = 0;
+    if (index >= nSegments) index = nSegments - 1;
 
-    // Safety clamp
-    if (winningIndex < 0) winningIndex = 0;
-    if (winningIndex >= nSegments) winningIndex = nSegments - 1;
+    const winner = entries[index];
 
-    const winner = entries[winningIndex];
-
-    // --- restore UI ---
+    // ---- Restore UI ----
     isSpinning = false;
     startBtn.disabled = false;
     clearBtn.disabled = false;
@@ -349,6 +335,7 @@ function spin() {
   addField();
   resizeCanvas();
 })();
+
 
 
 
