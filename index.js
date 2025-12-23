@@ -232,7 +232,7 @@
 
   // 3) Convert wheel "up-based" angle to needle's "down-based" visual angle:
   //    Needle 0deg = down = up + 180deg -> offset by 180 degrees
-  const visualOffset = 180;
+  const visualOffset = 182;
 
   // 4) Total rotation we want to ADD (always clockwise, positive)
   const totalRotation =
@@ -316,5 +316,6 @@
   addField();
   resizeCanvas();
 })();
+
 
 
