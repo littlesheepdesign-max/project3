@@ -353,15 +353,17 @@ body {
   position: absolute;
   left: 50%;
   top: 50%;
-  /* make it a thin rectangle instead of a triangle */
-  width: 4px;              /* thickness of the needle line */
-  height: 90px;            /* length of the needle */
-  background-color: var(--danger);
-  border-radius: 999px;    /* rounded line ends */
 
-  /* pivot from near the bottom so it rotates properly from the center */
-  transform-origin: 50% 80px; /* a bit above the bottom (height is 90px) */
-  transform: translate(-50%, -80%) rotate(0deg);
+  /* LINE STYLE NEEDLE EXAMPLE (use whatever style you prefer) */
+  width: 4px;
+  height: 90px;
+  background-color: var(--danger);
+  border-radius: 999px;
+
+  /* BASE TRANSFORM (no rotation baked in) */
+  --needle-rotate: 0deg;
+  transform-origin: 50% 80px;           /* or whatever pivot you chose */
+  transform: translate(-50%, -50%) rotate(var(--needle-rotate));
 
   filter: drop-shadow(0 8px 10px rgba(148, 163, 184, 0.9));
   transition: transform 0.2s ease-out;
@@ -444,4 +446,5 @@ body {
   margin-top: 4px;
   width: 100%;
 }
+
 
