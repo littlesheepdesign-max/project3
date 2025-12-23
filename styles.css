@@ -348,40 +348,38 @@ body {
   display: none;
 }
 
+/* Needle in middle of pie */
 .needle {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 0;
-  height: 0;
-  border-style: solid;
-
-  /* Draw triangle pointing UP from the origin */
-  border-width: 90px 16px 0 16px;
-  border-color: var(--danger) transparent transparent transparent;
-
-  /* Origin at the TIP (bottom center of the element box) */
-  transform-origin: 50% 100%;
-  transform: translate(-50%, -50%) rotate(0deg);
+position: absolute;
+left: 50%;
+top: 50%;
+width: 0;
+height: 0;
+border-style: solid;
+border-width: 0 16px 90px 16px;
+border-color: transparent transparent var(--danger) transparent;
+transform-origin: 50% 70px;
+transform: translate(-50%, -50%) rotate(0deg);
+filter: drop-shadow(0 8px 10px rgba(148, 163, 184, 0.9));
+transition: transform 0.2s ease-out;
 }
 
 .needle-base {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #f9fafb 0, #d1d5db 70%);
-  border: 2px solid #9ca3af;
-  box-shadow: 0 8px 14px rgba(148, 163, 184, 0.9);
+position: absolute;
+left: 50%;
+top: 50%;
+transform: translate(-50%, -50%);
+width: 34px;
+height: 34px;
+border-radius: 50%;
+background: radial-gradient(circle, #f9fafb 0, #d1d5db 70%);
+border: 2px solid #9ca3af;
+box-shadow: 0 8px 14px rgba(148, 163, 184, 0.9);
 }
 
 .needle.spinning {
-  transition-timing-function: cubic-bezier(0.12, 0.01, 0.12, 1);
+transition-timing-function: cubic-bezier(0.12, 0.01, 0.12, 1);
 }
-
 /* Question display on top of pie */
 .question-display {
   position: absolute;
@@ -456,10 +454,3 @@ body {
   margin-top: 4px;
   width: 100%;
 }
-
-
-
-
-
-
-
