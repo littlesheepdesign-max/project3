@@ -348,18 +348,18 @@ body {
   display: none;
 }
 
-/* Needle in middle of pie */
 .needle {
   position: absolute;
   left: 50%;
   top: 50%;
-  /* center of needle is at the wheel center */
-  transform: translate(-50%, -50%) rotate(0deg);
-  transform-origin: 50% 50%;
 
-  /* long, thin bar pointing up by default */
+  /* Place the bottom-center of the needle at the wheel center */
+  transform: translateX(-50%) translateY(0) rotate(0deg);
+  transform-origin: 50% 100%;
+
+  /* long, thin bar pointing up by default (0deg = up) */
   width: 6px;              /* thickness */
-  height: 55%;             /* length, adjust as needed (e.g. 50–60%) */
+  height: 55%;             /* length of the needle */
   background: linear-gradient(to top, var(--danger), #f97316);
   border-radius: 999px;
 
@@ -460,4 +460,5 @@ body {
   margin-top: 4px;
   width: 100%;
 }
+
 
