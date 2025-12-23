@@ -222,32 +222,31 @@ function spin() {
   const nSegments = n;
   const anglePerSegment = 360 / nSegments;
 
-  // 1) Choose the winner
+  // 1) Choose winner
   const winningIndex = randomInt(0, nSegments - 1);
 
-  // 2) Segment center in wheel coordinates, matching drawWheel():
-  //    startAngleDeg = i * anglePerSegment - 90
-  //    center = start + anglePerSegment / 2
-  const segmentCenterAngleFromUp =
+  // 2) Segment center, EXACTLY matching drawWheel()
+  const segmentCenterDeg =
     winningIndex * anglePerSegment - 90 + anglePerSegment / 2;
 
-  // 3) Needle 0deg = down, "up" = -90° (already in segmentCenterAngleFromUp)
-  //    so we only need to convert from "up" to needle's 0=down -> +180deg
-  const fineTune = 0;           // tweak to 1 or -1 if tip slightly off visually
+  // 3) Needle 0deg = down (6 o'clock).
+  //    We want the DOWN tip to point at segmentCenterDeg (0deg = up),
+  //    so add 180deg.
+  const fineTune = 0;       // try 0 first; later adjust by ±1 if needed
   const visualOffset = 180 + fineTune;
 
-  // 4) Absolute target angle
+  // 4) Target final angle
   const baseSpins = (minSpins + extraSpins) * 360;
-  const targetAbsoluteAngle =
-    baseSpins + segmentCenterAngleFromUp + visualOffset;
+  const targetAbsoluteAngle = baseSpins + segmentCenterDeg + visualOffset;
 
   needle.classList.add('spinning');
   void needle.offsetWidth;
 
-  // Reset to 0deg for each spin to avoid drift
+  // Reset to 0deg for each spin (no drift)
   needle.style.transition = 'none';
   needle.style.transform = 'translate(-50%, -50%) rotate(0deg)';
   void needle.offsetWidth;
+
   needle.style.transition =
     `transform ${duration}ms cubic-bezier(0.12, 0.01, 0.12, 1)`;
 
@@ -316,6 +315,7 @@ function spin() {
   addField();
   resizeCanvas();
 })();
+
 
 
 
