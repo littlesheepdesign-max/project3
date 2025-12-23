@@ -36,20 +36,19 @@
 	  max-width: 1200px;
 	  padding: 16px;
 	  display: flex;
-	  flex-direction: column;    /* mobile: column, panel first */
+	  flex-direction: column;   /* stack on mobile / small screens */
 	  gap: 16px;
 	  font-size: 18px;
 	}
 
-    @media (min-width: 900px) {
-      .app {
-        flex-direction: row-reverse; /* panel on the left, wheel on the right on desktop */
-        align-items: stretch;
-        gap: 24px;
-      }
-    }
-
-    /* LEFT: Controls */
+	@media (min-width: 900px) {
+	  .app {
+		flex-direction: row;     /* side by side on desktop */
+		align-items: stretch;
+		gap: 24px;
+	  }
+	}
+    
     .panel {
 	  background: var(--panel);
 	  border-radius: 16px;
@@ -67,7 +66,7 @@
 	@media (min-width: 900px) {
 	  .panel {
 		max-width: 380px;
-		flex-shrink: 0;
+		
 	  }
 	}
 
@@ -261,7 +260,7 @@
       color: #374151;
     }
 
-    /* RIGHT: Wheel Area */
+    
     .wheel-area {
 	  flex: 1;
 	  display: flex;
@@ -270,7 +269,7 @@
 	  padding: 8px;
 	  position: relative;
 	  min-height: 360px;
-	  width: 100%;       /* ensure it fills under the panel on mobile */
+	  width: 100%;       
 	}
 
     .wheel-wrapper {
@@ -283,7 +282,7 @@
 	  justify-content: center;
 	  margin: 0 auto;
 	}
-	/* Make wheel a bit smaller and give breathing room on very small phones */
+	
 	@media (max-width: 600px) {
 	  .wheel-area {
 		min-height: 320px;
@@ -466,14 +465,12 @@
 </head>
 <body>
   <div class="app">
-    <!-- LEFT: Controls -->
     <div class="panel">
       <div class="panel-header">
         <div class="panel-title">Entries</div>
         <div class="badge" id="entryCountBadge">0 / 10</div>
       </div>
 
-      <!-- Question input -->
       <div class="question-block">
         <label class="question-label" for="questionInput">Question / Topic</label>
         <input
@@ -508,7 +505,6 @@
       </div>
     </div>
 
-    <!-- RIGHT: Wheel -->
     <div class="wheel-area">
       <div class="wheel-wrapper">
         <div class="question-display" id="questionDisplay"></div>
@@ -853,3 +849,4 @@
   </script>
 </body>
 </html>
+
