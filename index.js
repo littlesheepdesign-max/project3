@@ -294,6 +294,10 @@ function spin() {
     index = index % nSegments;
     if (index < 0) index += nSegments;
 
+	// >>> ADD THIS OFFSET <<<
+	const OFFSET = 1;
+	index = (index + OFFSET + nSegments) % nSegments;
+
     const winner = entries[index];
 
     // DEBUG: log info for a "wrong" spin
@@ -367,6 +371,7 @@ function spin() {
   addField();
   resizeCanvas();
 })();
+
 
 
 
