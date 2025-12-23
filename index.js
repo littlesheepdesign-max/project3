@@ -215,52 +215,62 @@ function spin() {
   statusText.textContent = 'Spinning…';
   spinStatus.textContent = 'Spinning';
 
-  // --- RANDOM SPIN CONFIG ---
   const duration = randomInt(3000, 10000);
-  const minSpins = 4;              // minimum full spins
+  const minSpins = 4;
   const extraSpins = Math.random() * 4;
 
   const nSegments = n;
   const anglePerSegment = 360 / nSegments;
 
-  // 1) Choose the winning index ONCE
+  // 1) Choose the winner
   const winningIndex = randomInt(0, nSegments - 1);
 
-  // 2) Center of that segment, in wheel coordinates (0° = UP)
+  // 2) Segment center in wheel coordinates (0° = up)
   const segmentCenterAngleFromUp =
     winningIndex * anglePerSegment + anglePerSegment / 2;
 
-  // 3) Convert wheel 0° (UP) -> needle 0° (DOWN)
-  //    Needle 0deg = DOWN = UP + 180deg
+  // 3) Needle 0deg = down, wheel 0deg = up -> +180deg
+  // You can tweak fineTune by ±1° if you see a tiny offset.
+  const fineTune = 0;
+  const visualOffset = 180 + fineTune;
+
+  // 4) Absolute target angle we want the needle to end up at
+  const baseSpins = (minSpins + extraSpins) * 360;
+  const targetAbsoluteAngle =
+    baseSpins + segmentCenterAngleFromUp + visualOffset;
+
+  // IMPORTANT: we do NOT use currentRotation to compute the target
+  // winner angle. We always aim at this absolute angle.
   //
-  //    smallFineTune is to fix sub‑pixel / triangle geometry (adjust +-1 or 2 if needed)
-  const smallFineTune = 0;      // start with 0, then try 1 or -1 if *slightly* off
-  const visualOffset = 180 + smallFineTune;
+  // For smoothness, we still let the CSS rotation be relative
+  // to 0deg, and we no longer track currentRotation as a base
+  // for future spins.
 
-  // 4) Total rotation to ADD (always clockwise, positive)
-  const totalRotation =
-    (minSpins + extraSpins) * 360 +
-    segmentCenterAngleFromUp +
-    visualOffset;
-
-  // 5) Animate from currentRotation to targetRotation
   needle.classList.add('spinning');
   void needle.offsetWidth; // force reflow
 
-  const targetRotation = currentRotation + totalRotation;
+  // Transition from current visual angle to new absolute angle:
+  // First, compute the current angle from the current transform string.
+  // If you don't care about perfectly smooth continuity between spins,
+  // you can simply assume 0deg as starting point each time.
+  //
+  // Simpler: always reset transform to 0deg before spinning:
+  needle.style.transition = 'none';
+  needle.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+  void needle.offsetWidth; // reflow again to apply
+  needle.style.transition = `transform ${duration}ms cubic-bezier(0.12, 0.01, 0.12, 1)`;
 
-  needle.style.transitionDuration = duration + 'ms';
+  // Now animate to targetAbsoluteAngle
   needle.style.transform =
-    `translate(-50%, -50%) rotate(${targetRotation}deg)`;
+    `translate(-50%, -50%) rotate(${targetAbsoluteAngle}deg)`;
 
   const onTransitionEnd = () => {
     needle.removeEventListener('transitionend', onTransitionEnd);
     needle.classList.remove('spinning');
 
-    // Keep currentRotation monotone increasing for smooth subsequent spins
-    currentRotation = targetRotation;
+    // No more angle accumulation: we don't update currentRotation here
+    // because we always compute an absolute target angle per spin.
 
-    // Use the known winningIndex directly; do NOT convert from angle again
     const winner = entries[winningIndex];
 
     isSpinning = false;
@@ -319,6 +329,7 @@ function spin() {
   addField();
   resizeCanvas();
 })();
+
 
 
 
