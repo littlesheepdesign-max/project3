@@ -24,7 +24,7 @@
 
   let isSpinning = false;
   let entries = [];
-  let currentRotation = 0; // in degrees, growing clockwise only
+
 
   function resizeCanvas() {
 	const rect = canvas.getBoundingClientRect();
@@ -222,18 +222,15 @@ function spin() {
   const nSegments = n;
   const anglePerSegment = 360 / nSegments;
 
-  // 1. Choose a random extra rotation within one full circle
-  const randomOffset = Math.random() * 360;
-
-  // 2. Base spins to look nice + random offset
+  // 1) Choose a random final rotation in degrees
   const baseSpins = (minSpins + extraSpins) * 360;
-  const finalNeedleAngle = baseSpins + randomOffset; // in degrees
+  const randomOffset = Math.random() * 360;
+  const finalNeedleAngle = baseSpins + randomOffset;
 
-  // 3. Animate needle from 0 to finalNeedleAngle (no drift)
+  // 2) Animate needle from 0deg every time (no drift)
   needle.classList.add('spinning');
   void needle.offsetWidth;
 
-  // reset to 0deg so every spin starts from the same reference
   needle.style.transition = 'none';
   needle.style.transform = 'translate(-50%, -50%) rotate(0deg)';
   void needle.offsetWidth;
@@ -249,32 +246,26 @@ function spin() {
 
     // ---- Determine winner from finalNeedleAngle ----
 
-    // a) Normalize final needle angle to [0, 360)
+    // a) Normalize needleDeg to [0, 360)
     let needleDeg = ((finalNeedleAngle % 360) + 360) % 360;
 
-    // b) Convert to "wheel angle" where 0deg = up, clockwise positive:
-    //
-    //    Needle 0deg = arrow tip DOWN (6 o'clock) → that is 180° from UP.
-    //    When needle rotates by needleDeg, the tip angle from UP is:
-    //        wheelDeg = needleDeg + 180
-    //
-    let wheelDeg = needleDeg + 180;
-    wheelDeg = ((wheelDeg % 360) + 360) % 360; // normalize again
+    // b) Bottom tip angle in wheel coordinates:
+    //    At needleDeg = 0 → tip at 270deg (down).
+    //    With rotation, tip angle = 270 + needleDeg
+    let wheelTipDeg = 270 + needleDeg;
+    wheelTipDeg = ((wheelTipDeg % 360) + 360) % 360;
 
-    // c) Your drawWheel uses:
+    // c) Map wheelTipDeg to segment index using your drawWheel convention:
+    //
     //    startAngleDeg(i) = i * anglePerSegment - 90
+    //    => i = floor((wheelTipDeg + 90) / anglePerSegment)
     //
-    //    We want segment i such that:
-    //      startAngleDeg(i) <= wheelDeg < startAngleDeg(i) + anglePerSegment
-    //
-    //    Rearranging is equivalent to:
-    //      i = floor( (wheelDeg + 90) / anglePerSegment )
-    //
-    const adjusted = wheelDeg + 90;
-    let index = Math.floor(adjusted / anglePerSegment) % nSegments;
+    const adjusted = wheelTipDeg + 90;
+    let index = Math.floor(adjusted / anglePerSegment);
 
-    if (index < 0) index = 0;
-    if (index >= nSegments) index = nSegments - 1;
+    // Wrap into range [0, nSegments-1]
+    index = index % nSegments;
+    if (index < 0) index += nSegments;
 
     const winner = entries[index];
 
@@ -335,6 +326,7 @@ function spin() {
   addField();
   resizeCanvas();
 })();
+
 
 
 
