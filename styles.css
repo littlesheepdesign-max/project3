@@ -360,7 +360,6 @@ body {
 	transform-origin: 50% 70px;
 	transform: translate(-50%, -50%) rotate(0deg);
 	filter: drop-shadow(0 8px 10px rgba(148, 163, 184, 0.9));
-	transition: transform 0.2s ease-out;
 	}
 	
 	.needle-base {
@@ -454,6 +453,7 @@ body {
   margin-top: 4px;
   width: 100%;
 }
+
 
 
 
