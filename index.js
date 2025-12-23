@@ -192,80 +192,86 @@
   }
 
   function spin() {
-	if (isSpinning) return;
+  if (isSpinning) return;
 
-	updateEntryCount();
-	const n = entries.length;
-	if (n === 0) {
-	  statusText.textContent = 'Add at least 1 entry';
-	  return;
-	}
-
-	questionDisplay.textContent = questionInput.value.trim();
-
-	isSpinning = true;
-	startBtn.disabled = true;
-	clearBtn.disabled = true;
-	addFieldBtn.disabled = true;
-	questionInput.disabled = true;
-	Array.from(inputsContainer.querySelectorAll('input, button')).forEach(el => {
-	  el.disabled = true;
-	});
-
-	statusText.textContent = 'Spinning…';
-	spinStatus.textContent = 'Spinning';
-
-	// Fresh speed each time
-	const duration = randomInt(3000, 10000);
-	const minSpins = 4;
-	const extraSpins = Math.random() * 4;
-
-	const nSegments = n;
-	const anglePerSegment = 360 / nSegments;
-
-	const winningIndex = randomInt(0, nSegments - 1);
-	const segmentCenterAngleFromUp = winningIndex * anglePerSegment + anglePerSegment / 2;
-
-	// FORCE CLOCKWISE:
-	// currentRotation is always growing; we just add a positive delta.
-	const totalRotation = (minSpins + extraSpins) * 360 + segmentCenterAngleFromUp;
-
-	needle.classList.add('spinning');
-	void needle.offsetWidth;
-
-	const targetRotation = currentRotation + totalRotation; // always > currentRotation
-
-	needle.style.transitionDuration = duration + 'ms';
-	needle.style.transform = `translate(-50%, -50%) rotate(${targetRotation}deg)`;
-
-	const onTransitionEnd = () => {
-	  needle.removeEventListener('transitionend', onTransitionEnd);
-	  needle.classList.remove('spinning');
-
-	  // Keep currentRotation increasing; no modulo here to avoid “wrap‑back”
-	  currentRotation = targetRotation;
-
-	  const finalAngle = ((currentRotation % 360) + 360) % 360;
-	  const index = Math.floor(finalAngle / anglePerSegment) % nSegments;
-	  const winner = entries[index];
-
-	  isSpinning = false;
-	  startBtn.disabled = false;
-	  clearBtn.disabled = false;
-	  toggleAddButtonState();
-	  questionInput.disabled = false;
-	  Array.from(inputsContainer.querySelectorAll('input, button')).forEach(el => {
-		el.disabled = false;
-	  });
-
-	  statusText.textContent = 'Result ready';
-	  spinStatus.textContent = 'Ready';
-
-	  showWinnerOverlay(winner);
-	};
-
-	needle.addEventListener('transitionend', onTransitionEnd, { once: true });
+  updateEntryCount();
+  const n = entries.length;
+  if (n === 0) {
+    statusText.textContent = 'Add at least 1 entry';
+    return;
   }
+
+  questionDisplay.textContent = questionInput.value.trim();
+
+  isSpinning = true;
+  startBtn.disabled = true;
+  clearBtn.disabled = true;
+  addFieldBtn.disabled = true;
+  questionInput.disabled = true;
+  Array.from(inputsContainer.querySelectorAll('input, button')).forEach(el => {
+    el.disabled = true;
+  });
+
+  statusText.textContent = 'Spinning…';
+  spinStatus.textContent = 'Spinning';
+
+  const duration = randomInt(3000, 10000);
+  const minSpins = 4;
+  const extraSpins = Math.random() * 4;
+
+  const nSegments = n;
+  const anglePerSegment = 360 / nSegments;
+
+  // 1) Choose winner once
+  const winningIndex = randomInt(0, nSegments - 1);
+
+  // 2) Compute where that segment center should end up (relative to "up")
+  const segmentCenterAngleFromUp =
+    winningIndex * anglePerSegment + anglePerSegment / 2;
+
+  // 3) If 0deg on the needle is “down”, add 180° offset here if needed:
+  const visualOffset = 0; // or 180 if required by how your triangle is drawn
+
+  const totalRotation =
+    (minSpins + extraSpins) * 360 +
+    segmentCenterAngleFromUp +
+    visualOffset;
+
+  needle.classList.add('spinning');
+  void needle.offsetWidth;
+
+  const targetRotation = currentRotation + totalRotation;
+
+  needle.style.transitionDuration = duration + 'ms';
+  needle.style.transform =
+    `translate(-50%, -50%) rotate(${targetRotation}deg)`;
+
+  const onTransitionEnd = () => {
+    needle.removeEventListener('transitionend', onTransitionEnd);
+    needle.classList.remove('spinning');
+
+    // Keep monotone increasing rotation for smoothness
+    currentRotation = targetRotation;
+
+    const winner = entries[winningIndex];
+
+    isSpinning = false;
+    startBtn.disabled = false;
+    clearBtn.disabled = false;
+    toggleAddButtonState();
+    questionInput.disabled = false;
+    Array.from(inputsContainer.querySelectorAll('input, button')).forEach(el => {
+      el.disabled = false;
+    });
+
+    statusText.textContent = 'Result ready';
+    spinStatus.textContent = 'Ready';
+
+    showWinnerOverlay(winner);
+  };
+
+  needle.addEventListener('transitionend', onTransitionEnd, { once: true });
+}
 
   function showWinnerOverlay(name) {
 	const question = questionInput.value.trim();
@@ -305,3 +311,4 @@
   addField();
   resizeCanvas();
 })();
+
