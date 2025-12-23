@@ -22,8 +22,10 @@
   const winnerNameEl = document.getElementById('winnerName');
   const closeOverlayBtn = document.getElementById('closeOverlayBtn');
 
-  let isSpinning = false;
-  let entries = [];
+
+let isSpinning = false;
+let entries = [];
+let debugFinalNeedleAngle = 0; // for debugging
 
 
   function resizeCanvas() {
@@ -176,6 +178,33 @@
 	ctx.fill();
   }
 
+	function highlightWinningSegment(index) {
+  // just re-draw the wheel overlay with a subtle ring for the winning segment
+  const n = entries.length;
+  if (n === 0) return;
+
+  const w = canvas.width / window.devicePixelRatio;
+  const h = canvas.height / window.devicePixelRatio;
+  const cx = w / 2;
+  const cy = h / 2;
+  const radius = Math.min(w, h) / 2;
+  const anglePer = (2 * Math.PI) / n;
+
+  ctx.save();
+
+  const startAngle = index * anglePer - Math.PI / 2;
+  const endAngle = startAngle + anglePer;
+
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, radius * 0.9, startAngle, endAngle);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.18)'; // translucent overlay
+  ctx.fill();
+
+  ctx.restore();
+}
+
   function truncateText(ctx, text, maxWidth) {
 	if (!text) return '';
 	if (ctx.measureText(text).width <= maxWidth) return text;
@@ -190,6 +219,8 @@
   function randomInt(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
   }
+
+
 
 function spin() {
   if (isSpinning) return;
@@ -222,13 +253,17 @@ function spin() {
   const nSegments = n;
   const anglePerSegment = 360 / nSegments;
 
-  // 1) Choose a random final rotation in degrees
+  // FORCE-CONTROLLED RANDOMNESS:
+  // If you want to debug, set this to 0.
+  const randomOffset = 0; // <-- keep 0 for now while debugging
+
   const baseSpins = (minSpins + extraSpins) * 360;
-  const randomOffset = 0;
-//const randomOffset = Math.random() * 360;
   const finalNeedleAngle = baseSpins + randomOffset;
 
-  // 2) Animate needle from 0deg every time (no drift)
+  // store for debugging
+  debugFinalNeedleAngle = finalNeedleAngle;
+
+  // Animate needle from 0 each time
   needle.classList.add('spinning');
   void needle.offsetWidth;
 
@@ -245,32 +280,33 @@ function spin() {
     needle.removeEventListener('transitionend', onTransitionEnd);
     needle.classList.remove('spinning');
 
-    // ---- Determine winner from finalNeedleAngle ----
+    // --- Determine winner purely from debugFinalNeedleAngle ---
+    let needleDeg = ((debugFinalNeedleAngle % 360) + 360) % 360;
 
-    // a) Normalize needleDeg to [0, 360)
-    let needleDeg = ((finalNeedleAngle % 360) + 360) % 360;
-
-    // b) Bottom tip angle in wheel coordinates:
-    //    At needleDeg = 0 → tip at 270deg (down).
-    //    With rotation, tip angle = 270 + needleDeg
+    // Bottom tip angle in wheel space: 0deg=right, 90=up, 180=left, 270=down
     let wheelTipDeg = 270 + needleDeg;
     wheelTipDeg = ((wheelTipDeg % 360) + 360) % 360;
 
-    // c) Map wheelTipDeg to segment index using your drawWheel convention:
-    //
-    //    startAngleDeg(i) = i * anglePerSegment - 90
-    //    => i = floor((wheelTipDeg + 90) / anglePerSegment)
-    //
     const adjusted = wheelTipDeg + 90;
     let index = Math.floor(adjusted / anglePerSegment);
 
-    // Wrap into range [0, nSegments-1]
+    // normalize to [0, nSegments-1]
     index = index % nSegments;
     if (index < 0) index += nSegments;
 
     const winner = entries[index];
 
-    // ---- Restore UI ----
+    // DEBUG: log info for a "wrong" spin
+    console.log('DEBUG SPIN:', {
+      needleDeg,
+      wheelTipDeg,
+      adjusted,
+      anglePerSegment,
+      index,
+      entries,
+    });
+
+    // Restore UI
     isSpinning = false;
     startBtn.disabled = false;
     clearBtn.disabled = false;
@@ -284,6 +320,9 @@ function spin() {
     spinStatus.textContent = 'Ready';
 
     showWinnerOverlay(winner);
+
+    // OPTIONAL: briefly highlight the winning segment on the wheel
+    highlightWinningSegment(index);
   };
 
   needle.addEventListener('transitionend', onTransitionEnd, { once: true });
@@ -299,6 +338,7 @@ function spin() {
   function closeOverlay() {
 	overlay.classList.remove('active');
   }
+	
 
   // Event bindings
   addFieldBtn.addEventListener('click', () => addField());
@@ -327,6 +367,7 @@ function spin() {
   addField();
   resizeCanvas();
 })();
+
 
 
 
