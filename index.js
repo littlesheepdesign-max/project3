@@ -224,7 +224,8 @@ function spin() {
 
   // 1) Choose a random final rotation in degrees
   const baseSpins = (minSpins + extraSpins) * 360;
-  const randomOffset = Math.random() * 360;
+  const randomOffset = 0;
+//const randomOffset = Math.random() * 360;
   const finalNeedleAngle = baseSpins + randomOffset;
 
   // 2) Animate needle from 0deg every time (no drift)
@@ -326,6 +327,7 @@ function spin() {
   addField();
   resizeCanvas();
 })();
+
 
 
 
