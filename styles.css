@@ -353,15 +353,20 @@ body {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 16px 90px 16px;
-  border-color: transparent transparent var(--danger) transparent;
-  transform-origin: 50% 70px;
+  /* center of needle is at the wheel center */
   transform: translate(-50%, -50%) rotate(0deg);
+  transform-origin: 50% 50%;
+
+  /* long, thin bar pointing up by default */
+  width: 6px;              /* thickness */
+  height: 55%;             /* length, adjust as needed (e.g. 50–60%) */
+  background: linear-gradient(to top, var(--danger), #f97316);
+  border-radius: 999px;
+
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.7);
   filter: drop-shadow(0 8px 10px rgba(148, 163, 184, 0.9));
   transition: transform 0.2s ease-out;
+  z-index: 15;
 }
 
 .needle-base {
@@ -455,3 +460,4 @@ body {
   margin-top: 4px;
   width: 100%;
 }
+
