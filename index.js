@@ -191,7 +191,7 @@
 	return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
- function spin() {
+function spin() {
   if (isSpinning) return;
 
   updateEntryCount();
@@ -217,7 +217,7 @@
 
   // --- RANDOM SPIN CONFIG ---
   const duration = randomInt(3000, 10000);
-  const minSpins = 4;
+  const minSpins = 4;              // minimum full spins
   const extraSpins = Math.random() * 4;
 
   const nSegments = n;
@@ -226,15 +226,18 @@
   // 1) Choose the winning index ONCE
   const winningIndex = randomInt(0, nSegments - 1);
 
-  // 2) Compute where that segment’s center is in wheel coordinates (0° = up)
+  // 2) Center of that segment, in wheel coordinates (0° = UP)
   const segmentCenterAngleFromUp =
     winningIndex * anglePerSegment + anglePerSegment / 2;
 
-  // 3) Convert wheel "up-based" angle to needle's "down-based" visual angle:
-  //    Needle 0deg = down = up + 180deg -> offset by 180 degrees
-  const visualOffset = 182;
+  // 3) Convert wheel 0° (UP) -> needle 0° (DOWN)
+  //    Needle 0deg = DOWN = UP + 180deg
+  //
+  //    smallFineTune is to fix sub‑pixel / triangle geometry (adjust +-1 or 2 if needed)
+  const smallFineTune = 0;      // start with 0, then try 1 or -1 if *slightly* off
+  const visualOffset = 180 + smallFineTune;
 
-  // 4) Total rotation we want to ADD (always clockwise, positive)
+  // 4) Total rotation to ADD (always clockwise, positive)
   const totalRotation =
     (minSpins + extraSpins) * 360 +
     segmentCenterAngleFromUp +
@@ -254,10 +257,10 @@
     needle.removeEventListener('transitionend', onTransitionEnd);
     needle.classList.remove('spinning');
 
-    // Keep currentRotation monotone increasing so the next spin continues smoothly
+    // Keep currentRotation monotone increasing for smooth subsequent spins
     currentRotation = targetRotation;
 
-    // 6) Use the known winningIndex directly; no angle → index math
+    // Use the known winningIndex directly; do NOT convert from angle again
     const winner = entries[winningIndex];
 
     isSpinning = false;
@@ -316,6 +319,7 @@
   addField();
   resizeCanvas();
 })();
+
 
 
 
