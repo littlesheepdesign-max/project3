@@ -218,31 +218,24 @@ function spin() {
   const duration = randomInt(3000, 10000);
   const minSpins = 4;
   const extraSpins = Math.random() * 4;
+  const baseSpins = (minSpins + extraSpins) * 360;  // big multiple of 360
 
   const nSegments = n;
   const anglePerSegment = 360 / nSegments;
 
-  // 1) Choose winner
-  const winningIndex = randomInt(0, nSegments - 1);
+  // Random offset within [0, 360)
+  const randomOffset = Math.random() * 360;
 
-  // 2) Segment center, EXACTLY matching drawWheel()
-  const segmentCenterDeg =
-    winningIndex * anglePerSegment - 90 + anglePerSegment / 2;
+  // Final absolute angle we will animate to:
+  const targetAbsoluteAngle = baseSpins + randomOffset;
 
-  // 3) Needle 0deg = down (6 o'clock).
-  //    We want the DOWN tip to point at segmentCenterDeg (0deg = up),
-  //    so add 180deg.
-  const fineTune = 0;       // try 0 first; later adjust by ±1 if needed
-  const visualOffset = 180 + fineTune;
-
-  // 4) Target final angle
-  const baseSpins = (minSpins + extraSpins) * 360;
-  const targetAbsoluteAngle = baseSpins + segmentCenterDeg + visualOffset;
+  // Store this so we can use it in onTransitionEnd
+  const finalAngleDeg = targetAbsoluteAngle;
 
   needle.classList.add('spinning');
   void needle.offsetWidth;
 
-  // Reset to 0deg for each spin (no drift)
+  // Reset to 0deg before spinning (no drift)
   needle.style.transition = 'none';
   needle.style.transform = 'translate(-50%, -50%) rotate(0deg)';
   void needle.offsetWidth;
@@ -257,8 +250,49 @@ function spin() {
     needle.removeEventListener('transitionend', onTransitionEnd);
     needle.classList.remove('spinning');
 
+    // --- Determine winner from finalAngleDeg ---
+
+    // 1) Normalize to [0, 360)
+    let normalizedAngle = ((finalAngleDeg % 360) + 360) % 360; // always 0..359.999
+
+    // 2) Where is the bottom needle tip in "wheel coordinates"?
+
+    // Needle 0deg = down (6 o'clock).
+    // Canvas slices are defined with 0deg = up (12 o'clock), clockwise positive.
+    //
+    // When needle = 0deg → tip is at 180deg from "up".
+    // When needle = normalizedAngle → tip is at:
+    //   wheelAngleDeg = normalizedAngle + 180
+    let wheelAngleDeg = normalizedAngle + 180;
+
+    // Normalize again to [0, 360)
+    wheelAngleDeg = ((wheelAngleDeg % 360) + 360) % 360;
+
+    // 3) In your drawWheel, segment i starts at:
+    //    startAngleDeg = i * anglePerSegment - 90
+    //    and ends at startAngleDeg + anglePerSegment.
+    //
+    // We want to find i such that wheelAngleDeg lies in that range.
+    // Rearranging:
+    //
+    //   startAngleDeg <= wheelAngleDeg < startAngleDeg + anglePerSegment
+    //   i * anglePerSegment - 90 <= wheelAngleDeg < i * anglePerSegment - 90 + anglePerSegment
+    //
+    //   (i - 0.5) * anglePerSegment <= wheelAngleDeg + 90 < (i + 0.5) * anglePerSegment
+    //
+    // So:
+    const adjusted = wheelAngleDeg + 90; // shift so that segment 0 center is at anglePerSegment/2
+
+    // segment index:
+    let winningIndex = Math.floor(adjusted / anglePerSegment) % nSegments;
+
+    // Safety clamp
+    if (winningIndex < 0) winningIndex = 0;
+    if (winningIndex >= nSegments) winningIndex = nSegments - 1;
+
     const winner = entries[winningIndex];
 
+    // --- restore UI ---
     isSpinning = false;
     startBtn.disabled = false;
     clearBtn.disabled = false;
@@ -315,6 +349,7 @@ function spin() {
   addField();
   resizeCanvas();
 })();
+
 
 
 
