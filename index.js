@@ -191,9 +191,7 @@
 	return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  let isSpinning = false;
-let entries = [];
-let currentRotation = 0; // keep in [0, 360)
+
 
 function spin() {
   if (isSpinning) return;
@@ -321,4 +319,5 @@ function spin() {
   addField();
   resizeCanvas();
 })();
+
 
