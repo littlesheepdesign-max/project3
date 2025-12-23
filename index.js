@@ -191,7 +191,7 @@
 	return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  function spin() {
+ function spin() {
   if (isSpinning) return;
 
   updateEntryCount();
@@ -215,6 +215,7 @@
   statusText.textContent = 'Spinning…';
   spinStatus.textContent = 'Spinning';
 
+  // --- RANDOM SPIN CONFIG ---
   const duration = randomInt(3000, 10000);
   const minSpins = 4;
   const extraSpins = Math.random() * 4;
@@ -222,23 +223,26 @@
   const nSegments = n;
   const anglePerSegment = 360 / nSegments;
 
-  // 1) Choose winner once
+  // 1) Choose the winning index ONCE
   const winningIndex = randomInt(0, nSegments - 1);
 
-  // 2) Compute where that segment center should end up (relative to "up")
+  // 2) Compute where that segment’s center is in wheel coordinates (0° = up)
   const segmentCenterAngleFromUp =
     winningIndex * anglePerSegment + anglePerSegment / 2;
 
-  // 3) If 0deg on the needle is “down”, add 180° offset here if needed:
-  const visualOffset = 0; // or 180 if required by how your triangle is drawn
+  // 3) Convert wheel "up-based" angle to needle's "down-based" visual angle:
+  //    Needle 0deg = down = up + 180deg -> offset by 180 degrees
+  const visualOffset = 180;
 
+  // 4) Total rotation we want to ADD (always clockwise, positive)
   const totalRotation =
     (minSpins + extraSpins) * 360 +
     segmentCenterAngleFromUp +
     visualOffset;
 
+  // 5) Animate from currentRotation to targetRotation
   needle.classList.add('spinning');
-  void needle.offsetWidth;
+  void needle.offsetWidth; // force reflow
 
   const targetRotation = currentRotation + totalRotation;
 
@@ -250,9 +254,10 @@
     needle.removeEventListener('transitionend', onTransitionEnd);
     needle.classList.remove('spinning');
 
-    // Keep monotone increasing rotation for smoothness
+    // Keep currentRotation monotone increasing so the next spin continues smoothly
     currentRotation = targetRotation;
 
+    // 6) Use the known winningIndex directly; no angle → index math
     const winner = entries[winningIndex];
 
     isSpinning = false;
@@ -311,4 +316,5 @@
   addField();
   resizeCanvas();
 })();
+
 
